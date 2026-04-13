@@ -1,0 +1,128 @@
+﻿# ==============================================================================
+# Core Labels - すべてのプロジェクトで共通利用するラベル
+# ==============================================================================
+# 設計思想:
+#   - 5軸構成: Type / Priority / Status / Area / Source
+#   - プレフィックス命名で検索性とグルーピングを確保
+#   - 色は軸ごとに系統を統一
+#
+# 適用方法:
+#   npx github-label-sync --access-token <TOKEN> \
+#     --labels labels/core.yml <owner>/<repo>
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Type（種別）- 赤系 #d73a4a 系統
+# 何の作業か。1 Issue に 1つだけ付ける。
+# ------------------------------------------------------------------------------
+- name: "type: bug"
+  color: "d73a4a"
+  description: "不具合・バグ修正"
+
+- name: "type: feature"
+  color: "a2eeef"
+  description: "新規開発・新機能追加"
+
+- name: "type: enhancement"
+  color: "84b6eb"
+  description: "既存機能の改善・修正"
+
+- name: "type: question"
+  color: "d876e3"
+  description: "問い合わせ・質問対応"
+
+- name: "type: investigation"
+  color: "fbca04"
+  description: "調査タスク（原因究明、技術検証など）"
+
+- name: "type: refactor"
+  color: "c5def5"
+  description: "リファクタリング（機能変更なし）"
+
+- name: "type: docs"
+  color: "0075ca"
+  description: "ドキュメント追加・修正"
+
+- name: "type: chore"
+  color: "cfd3d7"
+  description: "雑務・環境整備・依存更新など"
+
+# ------------------------------------------------------------------------------
+# Priority（優先度）- 黄〜赤のグラデーション
+# どれくらい急ぐか。1 Issue に 1つだけ付ける。
+# ------------------------------------------------------------------------------
+- name: "priority: critical"
+  color: "b60205"
+  description: "即対応（本番障害・セキュリティなど）"
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: "高優先度"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "中優先度"
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: "低優先度"
+
+# ------------------------------------------------------------------------------
+# Status（状態）- 青系
+# 今どこにいるか。状況変化に応じて付け替える。
+# ------------------------------------------------------------------------------
+- name: "status: triage"
+  color: "ededed"
+  description: "未分類（受付直後、分類待ち）"
+
+- name: "status: in-progress"
+  color: "0052cc"
+  description: "対応中"
+
+- name: "status: in-review"
+  color: "006b75"
+  description: "レビュー待ち"
+
+- name: "status: blocked"
+  color: "b60205"
+  description: "他タスク・外部要因でブロック中"
+
+- name: "status: needs-info"
+  color: "d4c5f9"
+  description: "追加情報待ち（問い合わせ元への確認中など）"
+
+- name: "status: wontfix"
+  color: "ffffff"
+  description: "対応しないと決定"
+
+- name: "status: duplicate"
+  color: "cfd3d7"
+  description: "重複 Issue"
+
+# ------------------------------------------------------------------------------
+# Source（発生源）- 紫系
+# 誰/どこから来たか。問い合わせ対応で特に有効。
+# ------------------------------------------------------------------------------
+- name: "source: customer"
+  color: "5319e7"
+  description: "顧客からの問い合わせ・要望起因"
+
+- name: "source: internal"
+  color: "8b5cf6"
+  description: "社内メンバー起因"
+
+- name: "source: monitoring"
+  color: "c084fc"
+  description: "監視・アラート起因"
+
+# ------------------------------------------------------------------------------
+# Community（コミュニティ）- 緑系
+# OSS でよく使われる標準ラベル。
+# ------------------------------------------------------------------------------
+- name: "good first issue"
+  color: "7057ff"
+  description: "初めてのコントリビュータ向け"
+
+- name: "help wanted"
+  color: "008672"
+  description: "コントリビュータ募集中"
