@@ -1,1 +1,145 @@
-﻿
+﻿# ==============================================================================
+# Label Sync (Reusable Workflow)
+# ==============================================================================
+# このリポジトリのラベル定義を、他のリポジトリへ同期するための再利用可能Workflow。
+#
+# 使い方（呼び出し側リポジトリ）:
+#   jobs:
+#     sync:
+#       uses: <your-username>/github-toolkit/.github/workflows/label-sync-reusable.yml@main
+#       secrets: inherit
+#
+# 詳細: docs/label-sync-setup.md を参照
+# ==============================================================================
+
+name: Label Sync (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      labels-url:
+        description: "適用するラベル定義ファイルのURL（raw.githubusercontent.com 形式）"
+        required: false
+        type: string
+        default: "https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels/core.yml"
+
+      additional-labels-urls:
+        description: "追加で適用するラベル定義ファイルのURL（複数の場合は改行区切り）"
+        required: false
+        type: string
+        default: ""
+
+      allow-added-labels:
+        description: "YAMLに定義されていない既存ラベルを削除しない（既存プロジェクト移行時に推奨）"
+        required: false
+        type: boolean
+        default: false
+
+      dry-run:
+        description: "ドライラン実行（実際には変更せず、変更内容のみ出力）"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    name: Sync labels to ${{ github.repository }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      # ------------------------------------------------------------------------
+      # Step 1: ラベル定義ファイルを取得
+      # ------------------------------------------------------------------------
+      - name: Download primary labels file
+        run: |
+          echo "📥 Downloading primary labels from: ${{ inputs.labels-url }}"
+          curl -sfL "${{ inputs.labels-url }}" -o primary.yml || {
+            echo "❌ Failed to download labels from: ${{ inputs.labels-url }}"
+            exit 1
+          }
+          echo "✅ Downloaded $(wc -l < primary.yml) lines"
+
+      # ------------------------------------------------------------------------
+      # Step 2: 追加のラベル定義ファイルを取得してマージ(オプション)
+      # ------------------------------------------------------------------------
+      - name: Download and merge additional labels
+        if: inputs.additional-labels-urls != ''
+        run: |
+          cp primary.yml merged.yml
+          while IFS= read -r url; do
+            # 空行と前後の空白をスキップ
+            url=$(echo "$url" | xargs)
+            [ -z "$url" ] && continue
+
+            echo "📥 Downloading additional labels from: $url"
+            curl -sfL "$url" -o additional.yml || {
+              echo "❌ Failed to download labels from: $url"
+              exit 1
+            }
+            echo "" >> merged.yml
+            cat additional.yml >> merged.yml
+            echo "✅ Merged $(wc -l < additional.yml) lines"
+          done <<< "${{ inputs.additional-labels-urls }}"
+
+          mv merged.yml primary.yml
+          echo "📋 Final merged labels: $(wc -l < primary.yml) lines"
+
+      # ------------------------------------------------------------------------
+      # Step 3: YAMLの妥当性確認
+      # ------------------------------------------------------------------------
+      - name: Validate YAML syntax
+        run: |
+          python3 -c "
+          import yaml, sys
+          try:
+              with open('primary.yml') as f:
+                  data = yaml.safe_load(f)
+              if not isinstance(data, list):
+                  print('❌ Labels file must be a YAML list')
+                  sys.exit(1)
+              print(f'✅ Valid YAML with {len(data)} label definitions')
+          except yaml.YAMLError as e:
+              print(f'❌ Invalid YAML: {e}')
+              sys.exit(1)
+          "
+
+      # ------------------------------------------------------------------------
+      # Step 4: ラベル同期実行
+      # ------------------------------------------------------------------------
+      - name: Sync labels
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARGS="--access-token $GITHUB_ACCESS_TOKEN --labels primary.yml"
+
+          if [ "${{ inputs.allow-added-labels }}" = "true" ]; then
+            ARGS="$ARGS --allow-added-labels"
+            echo "ℹ️  --allow-added-labels: 既存ラベルは削除されません"
+          fi
+
+          if [ "${{ inputs.dry-run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+            echo "🔍 DRY-RUN モード: 実際には変更されません"
+          fi
+
+          echo "🚀 Syncing labels to ${{ github.repository }}..."
+          npx --yes github-label-sync@2.3.1 $ARGS ${{ github.repository }}
+
+      # ------------------------------------------------------------------------
+      # Step 5: 実行結果のサマリ
+      # ------------------------------------------------------------------------
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🏷️ Label Sync Result" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 項目 | 値 |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 対象リポジトリ | \`${{ github.repository }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| ラベル定義URL | ${{ inputs.labels-url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 既存ラベル保持 | ${{ inputs.allow-added-labels }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ドライラン | ${{ inputs.dry-run }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ステータス | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
