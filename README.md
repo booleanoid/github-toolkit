@@ -43,6 +43,13 @@ cd github-toolkit
 **前提条件:**
 - `gh auth login` でログイン済みであること
 - `python3` がインストールされていること（macOS 標準で入っています）
+- `pyyaml` がインストールされていること
+
+```bash
+pip3 install pyyaml
+```
+
+> `ModuleNotFoundError: No module named 'yaml'` が出た場合は上記を実行してください。
 
 `labels/core.yml` を読み込んで全ラベルを反映します。既存ラベルは `--force` で上書き更新されます（削除はしません）。
 
