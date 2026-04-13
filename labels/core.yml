@@ -33,3 +33,7 @@
 - name: "chore"
   color: "cfd3d7"
   description: "雑務・環境整備・依存更新など"
+
+- name: "estimate"
+  color: "f9d0c4"
+  description: "お見積り書の作成"
