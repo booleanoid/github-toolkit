@@ -87,19 +87,6 @@ jobs:
     secrets: inherit
 ```
 
-#### プリセットを使う場合
-
-Web アプリ用のラベルも適用したい場合は、`with` で URL を指定します:
-
-```yaml
-jobs:
-  sync:
-    uses: <your-username>/github-toolkit/.github/workflows/label-sync-reusable.yml@main
-    with:
-      labels-url: "https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels/presets/web-app.yml"
-    secrets: inherit
-```
-
 #### 既存プロジェクトに初めて導入する場合
 
 既存ラベルを削除したくない場合は `allow-added-labels: true` を指定します:
@@ -129,67 +116,15 @@ jobs:
 
 ## 運用パターン
 
-### パターンA: コアラベルのみ同期
+### シンプルな運用
 
-シンプルな運用。全プロジェクトで共通のラベル体系を維持したい場合。
+全プロジェクトで共通のコアラベルを維持したい場合は、このシンプルな設定で十分です。
 
 ```yaml
 jobs:
   sync:
     uses: <your-username>/github-toolkit/.github/workflows/label-sync-reusable.yml@main
     secrets: inherit
-```
-
-### パターンB: プロジェクト種別ごとに切り替え
-
-プロジェクトの性質に応じてプリセットを使い分け。
-
-```yaml
-# Web アプリ
-with:
-  labels-url: "https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels/presets/web-app.yml"
-
-# ライブラリ
-with:
-  labels-url: "https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels/presets/library.yml"
-
-# 顧客サポート
-with:
-  labels-url: "https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels/presets/customer-support.yml"
-```
-
-### パターンC: core + preset を組み合わせる
-
-両方を適用したい場合は、呼び出し側で `run` ステップを書きます:
-
-```yaml
-name: Sync Labels
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * 1"
-
-permissions:
-  issues: write
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download and merge labels
-        run: |
-          BASE="https://raw.githubusercontent.com/<your-username>/github-toolkit/main/labels"
-          curl -sL "$BASE/core.yml" > core.yml
-          curl -sL "$BASE/presets/web-app.yml" > preset.yml
-          cat core.yml preset.yml > merged.yml
-
-      - name: Sync labels
-        run: |
-          npx github-label-sync \
-            --access-token ${{ secrets.GITHUB_TOKEN }} \
-            --labels merged.yml \
-            ${{ github.repository }}
 ```
 
 ---
