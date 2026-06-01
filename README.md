@@ -30,7 +30,7 @@ PAT 不要。`gh` にログイン済みであればそのまま実行できま�
 
 ```bash
 # このリポジトリをクローン
-git clone https://github.com/<your-username>/github-toolkit.git
+git clone https://github.com/booleanoid/github-toolkit.git
 cd github-toolkit
 
 # ラベルを反映（既存ラベルも上書き更新）
